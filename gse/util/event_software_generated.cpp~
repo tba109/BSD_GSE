@@ -1,0 +1,86 @@
+/* Tyler Anderson Tue Mar 19 22:33:28 EDT 2013
+ * Read in the BSD and write the data to a text file for
+ * processing later.
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include "HBSD.h"
+#include "BSD_defs.h"
+#include "BSD_err.h"
+#include "error_resolve.h"
+#include "event_resolve.h"
+
+using namespace std;
+
+int main()
+{
+  HBSD bsdinstr;
+  FILE * fp;
+      
+  ////////////////////////////////////////////////////////////
+  // Open the BSD USB connection
+  ////////////////////////////////////////////////////////////
+  if( error_resolve(bsdinstr.open(0x04b4,0x1801)) )
+    return -1;
+
+
+  ////////////////////////////////////////////////////////////
+  // Open a file for writing
+  ///////////////////////////////////////////////////////////
+  char filename[100];
+  char timestr[100];
+  time_t starttime;
+  struct tm * timeinfo;
+  time( &starttime );
+  timeinfo = localtime( &starttime );
+  strftime(timestr,80,"%m-%d-%Y-%H-%M-%S",timeinfo);
+  sprintf(filename,"analysis/bsd_raw_data_%s.txt",timestr);
+  printf("Writing to %s\n",filename);
+  fp = fopen(filename,"w");
+
+  ////////////////////////////////////////////////////////////
+  // Readout and print the event data
+  ///////////////////////////////////////////////////////////
+  unsigned char buf[512];
+  int nbytes;
+  int total = 0;
+
+  while( 1/*total < 1000*/ )
+    {
+      total++;
+      
+      memset(buf,0,512);
+      
+      printf("----------------------------------------------------------------------------------------\n");
+      printf("Loop %d\n",total);
+  
+      // Read out the data
+      error_resolve( bsdinstr.BSD_readout_software_generated(&nbytes,buf) );
+      usleep(1000*10); // limit to 100Hz
+      //printf("-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/\n");
+      //for( int i = 0; i < nbytes; i++ )
+      //printf("%hu\n",buf[i]);
+      //printf("-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/-/\n");
+      
+      //printf("%s %d\n","BSDEvent::ProcessEvent: nbytes = ",nbytes);
+  
+      FillData(nbytes,buf,fp);
+      PrintAll();
+      // TBA debug
+      // value = 1;
+      // error_resolve(bsdinstr.BSD_execute(SET,ROSTACK,CLEV,&value));
+      // printf("value = %d\n",value);
+    }
+  
+  ////////////////////////////////////////////////////////////
+  // Close down the BSD USB connection
+  ////////////////////////////////////////////////////////////
+  if( error_resolve(bsdinstr.close()) )
+    return -1;  
+  
+  return 0;
+}
+

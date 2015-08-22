@@ -1,0 +1,234 @@
+---------------------------------------------------------------
+Sai Im Tue Apr  2 16:00:36 EDT 2013
+./sfc/BSD_defs.h:
+Replaced lines:
+#define PED1 0x01
+
+with
+
+#define PED1H 0x01
+
+for all PED1 thru PED4
+
+---------------------------------------------------------------
+Sai Im Tue Apr  2 16:05:29 EDT 2013
+./sfc/BSD_defs.h:
+Added lines:
+
+#define PED1L 0x81
+#define PED2L 0x82
+#define PED3L 0x83
+#define PED4L 0x84
+
+Changed line:
+#define NGETCONF_PARAMS 129
+
+to
+
+#define NGETCONF_PARAMS 133
+
+---------------------------------------------------------------
+Sai Im Tue Apr  2 16:15:59 EDT 2013
+.gse/src/command_resolve.cpp:
+Changed parameters in char params[Nparams][50]  {...}:
+"PED1H","PED2H","PED3H","PED4H"
+
+Added parameters:
+"PED1L","PED2L","PED3L","PED4L"
+
+Changed line:
+const int Nparams = 129;
+
+to
+
+const int Nparams = 133;
+
+Added numbers in const unsigned char paramval[Nparams]={...}:
+129,130,131,132
+
+---------------------------------------------------------------
+Sai Im Tue Apr  2 16:30:16 EDT 2013
+.sfc/BSDCmd.cpp:
+Removed from const unsigned short getconf_params[NGETCONF_PARAMS]:
+PED1, PED2, PED3, PED4
+
+Added in to const unsigned short getconf_params[NGETCONF_PARAMS]:
+PED1H, PED1L, PED2H, PED2L, PED3H, PED3L, PED4H, PED4L
+
+---------------------------------------------------------------
+Sai Im Tue Apr  2 17:18:45 EDT 2013
+.gse/util/getconf.cpp:
+Replaced in printf("PEDX D1X_DL ...):
+PEDX
+
+with
+
+PEDXH   PEDXL   ...
+
+---------------------------------------------------------------
+Sai Im Sat Apr  6 10:17:00 EDT 2013
+.gse/util/getconf.cpp:
+Added after printf("%8d",tcf_for_bsd.data[pos+3]);:     
+      pos++;
+      printf("%10d",tcf_for_bsd.data[pos+3]);
+to make up for adding PEDXL column.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---------------------------------------------------------------
+Sai Im Thu May  2 13:28:24 EDT 2013
+./sfc/.BSD_defs.h:
+
+Added PED5H through PEDT2L at bottom.
+
+Replaced PEDT1 and PEDT2 with PEDT1H and PEDT2H.
+
+Updated #NGETCONF_PARAMS from 133 to 159
+
+---------------------------------------------------------------
+Sai Im Thu May  2 13:31:53 EDT 2013
+.gse/src/command_resolve.cpp:
+
+xAdded parameters PED5H through PEDT2L in char parms[Nparams][50]
+
+Replaced 
+
+Updated const int Nparams = 159
+
+Added numbers in const unsigned char paramval[Nparams]={...} from 133 to 160.
+
+---------------------------------------------------------------
+Sai Im Thu May  2 13:40:40 EDT 2013
+.sfc/BSDCmd.cpp:
+
+Added in to const unsigned short getconf_params[NGETCONF_PARAMS]:
+
+PED1H, PED1L, PED2H, PED2L, PED3H, PED3L, PED4H, PED4L
+PED5H, etc.
+PED9H, etc.
+PED13H, etc.
+
+based on quartets.
+
+Added in:
+
+PEDT1H, PEDT1L
+and
+PEDT2H, PEDT2L
+
+replacing PEDT1 and PEDT2
+
+---------------------------------------------------------------
+Sai Im Thu May  2 20:07:02 EDT 2013
+
+
+
+
+
+
+
+
+
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Sai Im Mon Dec 16 14:08:15 EST 2013
+./sfc/BSD_defs.h:
+
+Updated all #define to match with Dec13_2013 command list.
+
+Updated NGETCONF_PARAMS to 144.
+
+---------------------------------------
+Sai Im Mon Dec 16 14:11:54 EST 2013
+.gse/src/command_resolve.cpp:
+
+Updated char cmds[Ncms][12] with SHUTDOWN command.
+
+Updated all parameters and Nparams = 144 to match command list.
+
+Removed all numbers to match Nparams, updating numbers to match hex value in parameter list.
+
+---------------------------------------
+Sai Im Mon Dec 16 14:22:10 EST 2013
+.sfc/BSDCmd.cpp:
+
+Updated getconf_params to match command list.
+
+Replaced INIT with SHUTDOWN wherever applicable.
+
+Reorganized getconf_params list to what is best for getconf.exe software.
+
+---------------------------------------
+Sai Im Mon Dec 16 15:34:13 EST 2013
+../BSD_sim*/BSD_sim*/BSD_simulator_firmware.C
+
+This is where initial values are set up. Had to insert new commands and new parameters for all POR and INIT.
+
+---------------------------------------
+Sai Im Mon Dec 16 14:47:23 EST 2013
+.gse/util/getconf.cpp:
+
+Reorganized tables in order to fit new parameters adequately.
+
+---------------------------------------
+Sai Im Tue Dec 17 14:23:26 EST 2013
+BSD-event.h: change #define NUM_RAW_BYTES to 84
+EP8IN: had to change nbytes from 82 to 84
+BSDsim.ihx EVTSIZE from 82 to 84
+
+
+----------------------------------------
+Sai Im Wed Dec 18 11:36:58 EST 2013
+./gse/src/event_resolve.cpp:
+
+curevt.eventcount = bufin[8]
+curevt.trig_mode = 0x3F & (bufin[9] >>2) ---> Means that this byte uses 6 of the digits
+curevt.conf_mode = 0x07 & (bufin[10] >>5); --->this one uses 3.
+curevt.trig2 = 0x01 & (bufin[11] >>2);
+curevt.trig1 = 0x01 & (bufin[11] >>1);
+curevt.extin = 0x01 & (bufin[11]);  ---> These three are digits 2,1,0 on the same byte (11)
+
+rbc += 8;
+
+---------------------------------------
+Sai Im Wed Dec 18 13:59:05 EST 2013
+./sfc/BSDCmd.cpp:
+
+Change int BSDCmd::checkEvent() section to have
+
+if( dparam != FPGA )
+   return -BSDCMD_CHECK_PARAM_ERR;
+return 0;
+
+instead of the other error.
+
+---------------------------------------
+Sai Im Wed Dec 18 16:43:36 EST 2013
+In the bsd_simulator_firmware:
+
+EVENTs need to output to EP6. Changed by placing EVENT loop within main EP6 output loop.
+
+Remove last few lines that have to do with outputting to EP6 for the RESET_FIFOs.
+
+----------------------------------------
+
+What has ultimately been changed:
+
+Parameters need to be changed and updated: 144 total, but up to 167 hex values. The hex values need to match. PONs have been added at the end.
+
+Commands have been updated such that EVENT works from the command line without error, and RESET_FIFO does not output to EP6. Also need to add SHUTDOWN command in place of INIT and swap SHUTDOWN with EVENT.
+

@@ -1,0 +1,251 @@
+/*
+ * Tyler Anderson Wed Jan 23 06:46:21 EST 2013
+ * BSDCmd implementation
+ */
+#include <iostream>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h> // Tyler Anderson Tue Jan 21 12:01:18 EST 2014, for usleep
+#include "BSDCmd.h"
+#include "BSD_err.h"
+
+using namespace std;
+
+BSDCmd::BSDCmd()
+{
+  dcmd = 0;
+  dparam = 0;
+  dvalue = NULL;
+  ddoresp = 1;
+}
+
+int BSDCmd::BSDCmd_GetConf(unsigned short * buf, BSDUsb * dev)
+{
+  // This defines the ordering of parameter retrieval. 
+  const unsigned short getconf_params[NGETCONF_PARAMS] = 
+    {FPGA,
+     PED1H,PED1L,PED2H,PED2L,PED3H,PED3L,PED4H,PED4L,D11_CM,D11_ON,D11_DL,D11_WD,D21_CM,D21_ON,D21_DL,D21_WD,DON1_CM,DON1_ON,DON1_DL,DON1_WD,HV11,HV21,HV31,
+     PED5H,PED5L,PED6H,PED6L,PED7H,PED7L,PED8H,PED8L,D12_CM,D12_ON,D12_DL,D12_WD,D22_CM,D22_ON,D22_DL,D22_WD,DON2_CM,DON2_ON,DON2_DL,DON2_WD,HV12,HV22,HV32,
+     PED9H,PED9L,PED10H,PED10L,PED11H,PED11L,PED12H,PED12L,D13_CM,D13_ON,D13_DL,D13_WD,D23_CM,D23_ON,D23_DL,D23_WD,DON3_CM,DON3_ON,DON3_DL,DON3_WD,HV13,HV23,HV33,
+     PED13H,PED13L,PED14H,PED14L,PED15H,PED15L,PED16H,PED16L,D14_CM,D14_ON,D14_DL,D14_WD,D24_CM,D24_ON,D24_DL,D24_WD,DON4_CM,DON4_ON,DON4_DL,DON4_WD,HV14,HV24,HV34,
+     PEDT1H,PEDT1L,D1T1_CM,D1T1_ON,D1T1_DL,D1T1_WD,D2T1_CM,D2T1_ON,D2T1_DL,D2T1_WD,THR1,HVT1,
+     PEDT2H,PEDT2L,D1T2_CM,D1T2_ON,D1T2_DL,D1T2_WD,D2T2_CM,D2T2_ON,D2T2_DL,D2T2_WD,THR2,HVT2,
+     TRIG_MODE,CONF_MODE,COINC_WD,RECOV_WD,DIG_DL,TRIG1_RATE,TRIG2_RATE,TRIG_SELF_RATE,TRIG_MT_RATE,TRIG_T0_RATE,
+     PULSE1_DL,PULSE1_WD,PULSE1_AMP,PULSE1_ON,
+     PULSE2_DL,PULSE2_WD,PULSE2_AMP,PULSE2_ON,
+     PON_QA,PON_QB,PON_QC,PON_QD,PON_T1,PON_T2,PON_FEEX,PON_FEEY,PON_FEEZ};
+     
+  unsigned short value[1] = {0};
+  int retval = 0;
+  unsigned short *p = buf;
+  
+  // header would go here, but leave it blank for now
+  *p = 0;
+  p++;
+  // cout << "debug: In getconf\n";
+  
+  for( int j = 0; j < NGETCONF_PARAMS; j++ )
+    {
+      // printf("Running for param %d\n",getconf_params[j]);
+      *value = 0;
+      if( (retval = BSDCmd_ProcessCommand(GET,getconf_params[j],value,dev)) )
+	{
+	  // printf("BSDCmd::BSDCmd_GetConf: Error sending command %d %d %d %x\n",GET,getconf_params[j],value,dev);
+	  return retval;
+	}
+      *p++ = *value;
+      
+    }
+  return 0;
+}
+
+int BSDCmd::BSDCmd_ProcessCommand(unsigned int cmd, unsigned int param, unsigned short * value, BSDUsb * dev)
+{
+  int retval = 0;
+  ddoresp = 1;
+
+  // Assign to the data members so that we don't have to constantly
+  dcmd = cmd;
+  dparam = param;
+  dvalue = value;
+  char rawcmd[8] = {0x8F,0xC7,0xAB,0xBA,0,0,0,0};
+
+  // printf("BSDCmd::BSDCmd_ConvertCommand: Entered\n");
+  
+  // Tyler Anderson Wed Mar 13 12:04:43 EDT 2013
+  // Command checking
+
+  if( dcmd == NOP )
+    {
+      if( (retval = checkNop()) )
+	return retval;
+    }
+  else if( dcmd == GET )
+    {
+      if( (retval = checkGet()) )
+	return retval;
+    }
+  else if( dcmd == SET )
+    {
+      if( (retval = checkSet()) )
+	return retval;
+    }
+  else if( dcmd == SHUTDOWN )
+    {
+      if( (retval = checkShutdown()) )
+	{
+	  return retval;
+	}
+    }
+  else if( dcmd == EVENT )
+    {
+      if( (retval = checkEvent()) )
+	{
+	  return retval;
+	}
+    }
+  else if( dcmd == RESET )
+    {
+      if( (retval = checkReset()) )
+	{
+	  return retval;
+	}
+    }
+  else if( dcmd == RESET_FIFO )
+    {
+      if( (retval = checkResetFifo()) )
+	{
+	  return retval;
+	}
+    }
+  else
+    return -BSDCMD_ACTION_UNKNOWN_ERR;
+  
+  // printf("%s","BSDCmd:Process_Command::Checks okay!\n");
+
+  // Do the conversion
+  rawcmd[4] = (char) ( dcmd & 0x7F );
+  rawcmd[5] = dparam;
+  rawcmd[6] = (*dvalue & 0xFF00) >> 8;
+  rawcmd[7] = *dvalue & 0x000000FF;
+  
+  if( dcmd == RESET_FIFO ) // This guys is special, sends a command on EP4 to reset the USB interface
+    {
+      if ( (retval = dev->BSDUsb_bulk_write_EP4OUT(rawcmd,8)) ) // Send the commands to EP4
+	return retval;
+    }
+  else
+    {
+      if ( (retval = dev->BSDUsb_bulk_write_EP2OUT(rawcmd,8)) ) // Send the commands to EP2
+	return retval;
+    }
+  
+  // Send the response
+  if( ddoresp )
+    {
+      // Tyler Anderson Tue Jan 21 11:59:57 EST 2014
+      // Some commands readback too fast, since there is a necessary delay (e.g., 50ms delay in turning off PMTs, FEEs, etc).
+      // Simple solution is to wait 60ms
+      usleep(60*1000);
+
+      if( (retval = dev->BSDUsb_bulk_read_EP6IN((unsigned char*)rawcmd,8)) )
+	return retval;
+      // printf("BSDCmd_ProcessCommand: %x %x %x %x %x %x %x %x\n",rawcmd[0],rawcmd[1],rawcmd[2],rawcmd[3],rawcmd[4],rawcmd[5],rawcmd[6],rawcmd[7]);
+    }
+  else
+    return 0;
+  
+  *value = 0;
+  
+  // printf("0x%X 0x%X 0x%X 0x%X\n",rawcmd[0],rawcmd[1],rawcmd[2],rawcmd[3]);
+
+  // Note that since cmd and param are passed by value, they don't get changed
+  if( !( ( (0x000000FF & rawcmd[0]) == 0x0000008F) && ( (0x000000FF & rawcmd[1]) == 0x000000C7) && ( (0x000000FF & rawcmd[2]) == 0x000000BC) && ( (0x000000FF & rawcmd[3]) == 0x000000CB) ) )
+    return -USB_SYNC_ERR;
+
+  cmd = (unsigned int) ( 0x000000FF & rawcmd[4] );
+  param  = (unsigned int) ( 0x000000FF & rawcmd[5] );
+  *value = (unsigned short)( ( ( rawcmd[6] & 0x000000FF ) << 8 ) | (rawcmd[7] & 0x000000FF ) );
+  
+  // Tyler Anderson Sat Jan 25 15:42:12 EST 2014
+  // We want to print messages to the error log if commands don't go through as we expect
+  // However, getconf does return an error falsely because it sends GET FPGA, which is invalid.
+  // The easiest solution is to do as follows:
+  // For flight, we may want to have something like this, with an IO redirect to the error log...
+  if( (cmd & 0x00000080) && ((cmd & 0x00000080) != GET) && (param != FPGA) ) // if there was an error, and it wasn't when the command GET FPGA was issued, which returns an  error anyway.
+    printf("ERROR: 0x%X 0x%X 0x%X\n",cmd,param,*value);
+
+  // printf("BSDCmd_ProcessCommand: response *value = %x\n",*value);
+  //printf("BSDCmd::BSDCmd_ConvertCommand: Exiting\n");
+  return 0;
+}
+
+int BSDCmd::checkNop()
+{
+  if( dparam != FPGA )
+    return -BSDCMD_CHECK_PARAM_ERR;
+  return 0;
+}
+
+int BSDCmd::checkGet()
+{
+  return 0;
+}
+
+int BSDCmd::checkSet()
+{
+  if( dparam == FPGA )
+    return -BSDCMD_CHECK_PARAM_ERR;
+
+  // Tyler Anderson Tue Jan 28 16:19:47 EST 2014
+  // TRIG_MODE can now be any 8-bit number
+  // if( dparam == TRIG_MODE )
+  //   if( (*dvalue < 0) || (*dvalue > 7) )
+  //    return -BSDCMD_CHECK_DATAVAL_ERR;
+  
+  // Tyler Anderson Fri Feb  7 16:26:40 EST 2014
+  // conf mode can now be any 8-bit number
+  // if( dparam == CONF_MODE )
+  //  if( (*dvalue < 0) || (*dvalue > 3) )
+  //    return -BSDCMD_CHECK_DATAVAL_ERR;
+  return 0;
+}
+
+int BSDCmd::checkShutdown()
+{
+  if( dparam != FPGA )
+    return -BSDCMD_CHECK_PARAM_ERR;
+  return 0;
+}
+
+int BSDCmd::checkEvent()
+{
+  // This should be caught in a top level function when it's called but just in case,
+  // let's make sure we don't process it here
+  //return -BSDCMD_EVENT_ERR;
+
+  //B-but, now we do want to process it, so let's figure out how to do that.
+  if( dparam != FPGA )
+    return -BSDCMD_CHECK_PARAM_ERR;
+  return 0;
+}
+
+int BSDCmd::checkReset()
+{
+  if( dparam != FPGA )
+    return -BSDCMD_CHECK_PARAM_ERR;
+  return 0;
+}
+
+int BSDCmd::checkResetFifo()
+{
+  if( dparam != FPGA )
+    return -BSDCMD_CHECK_PARAM_ERR;
+  return 0;
+}
+
+
+BSDCmd::~BSDCmd()
+{
+  ;
+}

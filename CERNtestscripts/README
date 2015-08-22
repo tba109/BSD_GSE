@@ -1,0 +1,620 @@
+Sai Im
+Started on: Fri Jul 31 12:13:03 EDT 2015
+
+
+Last change: Tue Aug  4 16:52:16 EDT 2015
+--------------------------------
+Miscellaneous Notes:
+
+   TOP PLATE
+HK POWER EVENT USB
+   BOTTOM PLATE
+
+Power cable pinout:
+1 -> +5 V
+2 -> +5 V
+3 -> +12 V
+4 -> -5 V
+5 -> -5 V
+6,7,8,9 -> GND
+
+Small enclosure Quartet DB15 needs additional tape or glue to stick (liable to fall out during testing).
+
+Event board/LVDS box: G -> GREEN (the two-prong differential cable with the green tape goes towards the G)
+      		      B -> BROWN (the ribbon cable brown wire goes towards the B)
+		      I -> INPUT (connect to OUTPUT during event number testing)
+		      O -> OUTPUT (connect to INPUT during event number testing, otherwise connect to scope)
+		      
+PMT 5 has stuck bit (?
+
+----------------------------------
+Q# -> Quartet #
+BE -> Big Enclosure
+SE -> Small Enclosure
+
+QA is set to BE leftside (A1-A4)
+QB is set to BE rightside (A5-A8)
+QC is BLANK
+QD is set to SE PMTs (B1-B4)
+QT1 is set to SE BSD Trigger
+QT2 is set to SE NBSD Trigger
+
+  Ebox Channel 	|    Detector Channel	|	DB15
+-----------------------------------------------------------
+	1	|	A1		|	QA
+ 	2	|	A2		|	.
+ 	3	|	A3		|	.
+ 	4	|	A4		|	.
+ 	5	|	A5		|	QB
+ 	6	|	A6		|	.
+ 	7	|	A7		|	.
+ 	8	|	A8		|	.
+ 	9	|	--		|	QC
+ 	10	|	--		|	.
+ 	11	|	SE BSD Trig	|	.
+ 	12	|	SE NBSD Trig	|	.
+ 	13	|	B1 		|	QD
+ 	14	|	B2		|	.
+ 	15	|	B3		|	.
+ 	16	|	B4		|	.
+ 	T1	|	BE Untapered Trig	QT1
+ 	T2	|	BE Tapered Trig	|	QT2
+
+
+Looking at front of e-box
+
+	TOP PLATE
+QT2 QT1 QD  QC  QB  QA
+
+1   2   3   4   13  14
+5   6   7   8   15  T1
+9   10  11  12  16  T2
+    	BOTTOM PLATE
+
+T1 and T2 is subject to change if trigger cables are swapped to SE.
+--------------------------------------------------------------------
+WIRING TABLE 
+
+Name	|	Bundle	|	Length	|	Connector	|	w\ Converters
+------------------------------------------------------------------------------------
+A1	|	1	|	7.5'	|	SMA to SMA	|	--
+A2	|	1	|	7.5'	|	SMA to SMA	|	--
+A3	|	1	|	7.5'	|	SMA to SMA	|	--
+A4	|	1	|	8.5'	|	SMA to SMA	|	--
+					
+A5	|	2	|	7.5'	|	SMA TO SMA	|	--	
+A6	|	2	|	7.5'	|	SMA TO SMA	|	--
+A7	|	2	|	7.5'	|	SMA TO SMA	|	--
+A8	|	2	|	10.5'	|	SMA TO SMA	|	--
+		
+B1	|	3	|	10'	|	SMA TO SMA	|	--
+B2	|	3	|	18'	|	LEMO TO LEMO	|	SMA TO SMA
+B3	|	3	|	21.5'	|	LEMO TO BNC	|	SMA TO SMA
+B4	|	3	|	14	|	BNC TO BNC	|	SMA TO SMA
+		
+NBSDT	|	4	|	15.5'	|	SMA TO SMA	|	--
+BSDT	|	4	|	14'	|	BNC TO BNC	|	SMA TO SMA
+		
+Untapered	5	|	18'	|	LEMO TO LEMO	|	LEMO TO SMA
+Tapered	|	5	|	19.5'	|	LEMO TO LEMO	|	LEMO TO SMA
+LED	|	-	|	50'	|	BNC TO BNC	|	--   
+SHV	|	-	|	72'	|	SHV TO SHV	|	--
+
+USB Cable
+Trigger Cable
+Power Cable
+5 Quartet/Trig DB15 
+Scope Cable
+
+
+--------------------------------------------------------------------
+Power On Procedure:
+0) For fast turn-on, type <./poweron.sh>. For slow turn-on, go on to step 1).
+
+0.5) Turn on high voltage power supply to 1200 V, supplying to BE trigger tubes.
+
+1) Type <lsusb> and look for a VID:PID of 04b4:1800
+   
+bsdpsulaptop@BSD-PSU-Laptop:~/BSD_GSE_MAY_19_2014$ lsusb
+Bus 001 Device 002: ID 0438:7900 Advanced Micro Devices, Inc. 
+Bus 002 Device 002: ID 0438:7900 Advanced Micro Devices, Inc. 
+Bus 003 Device 006: ID 04b4:1800 Cypress Semiconductor Corp. 
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 003 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 004 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+Bus 001 Device 003: ID 0bda:0129 Realtek Semiconductor Corp. RTS5129 Card Reade	r Controller
+Bus 002 Device 003: ID 5986:014f Acer, Inc 
+Bus 002 Device 004: ID 0bda:b728 Realtek Semiconductor Corp. 
+
+2) Type <./reset.exe> in order to load the USB firmware. Verify that the VID:PID has changed to 04b4:1801 with <lsusb>.
+
+bsdpsulaptop@BSD-PSU-Laptop:~/BSD_GSE_MAY_19_2014$ ./reset.exe 
+BSDUsb::BSDUsb_initialization: USB library initialized
+BSDUsb::BSDUsb_initialization: USB system bus list updated
+BSDUsb::BSDUsb_initialization: USB system device list updated
+BSDUsb::BSDUsb_initialization: BSD USB device found
+BSDUsb::BSDUsb_initialization: Using ID 04b4:1800 on 003.006.
+BSDUsb::BSDUsb_initialization: BSD USB device opened
+BSDUsb::BSDUsb_initialization: USB library initialized
+BSDUsb::BSDUsb_initialization: USB system bus list updated
+BSDUsb::BSDUsb_initialization: USB system device list updated
+BSDUsb::BSDUsb_initialization: BSD USB device found
+BSDUsb::BSDUsb_initialization: Using ID 04b4:1800 on 003.006.
+BSDUsb::BSDUsb_initialization: BSD USB device opened
+BSDUsb::BSDUsb_initialization: USB library initialized
+BSDUsb::BSDUsb_initialization: USB system bus list updated
+BSDUsb::BSDUsb_initialization: USB system device list updated
+BSDUsb::BSDUsb_initialization: BSD USB device found
+BSDUsb::BSDUsb_initialization: Using ID 04b4:1800 on 003.006.
+BSDUsb::BSDUsb_initialization: BSD USB device opened
+Reset and download successful! :-)
+shutdown: 0 
+BSDUsb::BSDUsb_initialization: USB library initialized
+BSDUsb::BSDUsb_initialization: USB system bus list updated
+BSDUsb::BSDUsb_initialization: USB system device list updated
+BSDUsb::BSDUsb_initialization: BSD USB device found
+BSDUsb::BSDUsb_initialization: Using ID 04b4:1801 on 003.007.
+BSDUsb::BSDUsb_initialization: BSD USB device opened
+EP6IN Read:   0x8F 0xC7 0xBC 0xCB 0x05 0x00 0x00 0x00 
+
+3) Type <./script_command.exe CERNtestscripts/PowerOn> to turn on FEE boards and quartets
+
+bsdpsulaptop@BSD-PSU-Laptop:~/BSD_GSE_MAY_19_2014$ ./script_command.exe CERNtestscripts/PowerOn
+BSDUsb::BSDUsb_initialization: USB library initialized
+BSDUsb::BSDUsb_initialization: USB system bus list updated
+BSDUsb::BSDUsb_initialization: USB system device list updated
+BSDUsb::BSDUsb_initialization: BSD USB device found
+BSDUsb::BSDUsb_initialization: Using ID 04b4:1801 on 003.007.
+BSDUsb::BSDUsb_initialization: BSD USB device opened
+Opening File CERNtestscripts/PowerOn
+
+Enter commands in mnemonic form, and the 
+response will be shown, along with any 
+error messages
+------------------------------------------------
+Send command: 
+SET PON_FEEX 1
+Response value: 1
+------------------------------------------------
+Send command: 
+SET PON_FEEY 1
+Response value: 1
+------------------------------------------------
+Send command: 
+SET PON_FEEZ 1
+Response value: 1
+------------------------------------------------
+Send command: 
+SET PON_QA 1
+Response value: 1
+------------------------------------------------
+Send command: 
+SET PON_QB 1
+Response value: 1
+------------------------------------------------
+Send command: 
+SET PON_QC 1
+Response value: 1
+------------------------------------------------
+Send command: 
+SET PON_QD 1
+Response value: 1
+------------------------------------------------
+Send command: 
+SET PON_T1 1
+Response value: 1
+------------------------------------------------
+Send command: 
+SET PON_T2 1
+Response value: 1
+------------------------------------------------
+Send command: 
+END
+
+4) Type <./script_command.exe CERNtestscripts/StepHV> in order to step up HV DACs to 1000.
+
+Opening File CERNtestscripts/StepHV
+
+Enter commands in mnemonic form, and the 
+response will be shown, along with any 
+error messages
+------------------------------------------------
+Send command: 
+SET HV11 1000
+Response value: 1000
+------------------------------------------------
+Send command: 
+SET HV21 1000
+Response value: 1000
+------------------------------------------------
+Send command: 
+SET HV31 1000
+Response value: 1000
+------------------------------------------------
+Send command: 
+SET HV12 1000
+Response value: 1000
+------------------------------------------------
+Send command: 
+SET HV22 1000
+Response value: 1000
+------------------------------------------------
+Send command: 
+SET HV32 1000
+Response value: 1000
+------------------------------------------------
+Send command: 
+SET HV14 1000
+Response value: 1000
+------------------------------------------------
+Send command: 
+SET HV24 1000
+Response value: 1000
+------------------------------------------------
+Send command: 
+SET HV34 1000
+Response value: 1000
+------------------------------------------------
+Send command: 
+SET HVT1 1000
+Response value: 1000
+------------------------------------------------
+Send command: 
+SET HVT2 1000
+Response value: 1000
+------------------------------------------------
+Send command: 
+END
+
+5) Type <./script_command.exe CERNtestscripts/HVOn> to turn on all HVs fully.
+
+bsdpsulaptop@BSD-PSU-Laptop:~/BSD_GSE_MAY_19_2014$ ./script_command.exe CERNtestscripts/HVOn
+BSDUsb::BSDUsb_initialization: USB library initialized
+BSDUsb::BSDUsb_initialization: USB system bus list updated
+BSDUsb::BSDUsb_initialization: USB system device list updated
+BSDUsb::BSDUsb_initialization: BSD USB device found
+BSDUsb::BSDUsb_initialization: Using ID 04b4:1801 on 003.007.
+BSDUsb::BSDUsb_initialization: BSD USB device opened
+Opening File CERNtestscripts/HVOn
+
+Enter commands in mnemonic form, and the 
+response will be shown, along with any 
+error messages
+------------------------------------------------
+Send command: 
+SET HV11 2611
+Response value: 2611
+------------------------------------------------
+Send command: 
+SET HV21 3475
+Response value: 3475
+------------------------------------------------
+Send command: 
+SET HV31 3360
+Response value: 3360
+------------------------------------------------
+Send command: 
+SET HV12 2604
+Response value: 2604
+------------------------------------------------
+Send command: 
+SET HV22 3480
+Response value: 3480
+------------------------------------------------
+Send command: 
+SET HV32 3333
+Response value: 3333
+------------------------------------------------
+Send command: 
+SET HV14 2608
+Response value: 2608
+------------------------------------------------
+Send command: 
+SET HV24 3456
+Response value: 3456
+------------------------------------------------
+Send command: 
+SET HV34 3350
+Response value: 3350
+------------------------------------------------
+Send command: 
+SET HVT1 3375
+Response value: 3375
+------------------------------------------------
+Send command: 
+SET HVT2 3370
+Response value: 3370
+------------------------------------------------
+Send command: 
+END
+
+6) Type <./script_command.exe CERNtestscripts/ConstantMode> to engage constant mode on all quartets.
+
+isscream-psu@isscreampsu-X101CH:~/BSD_GSE_MAY_19_2014$ ./script_command.exe CERNtestscripts/ConstantMode 
+BSDUsb::BSDUsb_initialization: USB library initialized
+BSDUsb::BSDUsb_initialization: USB system bus list updated
+BSDUsb::BSDUsb_initialization: USB system device list updated
+BSDUsb::BSDUsb_initialization: BSD USB device found
+BSDUsb::BSDUsb_initialization: Using ID 04b4:1801 on 001.007.
+BSDUsb::BSDUsb_initialization: BSD USB device opened
+Opening File CERNtestscripts/ConstantMode
+
+Enter commands in mnemonic form, and the 
+response will be shown, along with any 
+error messages
+------------------------------------------------
+Send command: 
+SET DON1_CM 1
+Response value: 1
+------------------------------------------------
+Send command: 
+SET DON2_CM 1
+Response value: 1
+------------------------------------------------
+Send command: 
+SET DON3_CM 1
+Response value: 1
+------------------------------------------------
+Send command: 
+SET DON4_CM 1
+Response value: 1
+------------------------------------------------
+Send command: 
+SET DON1_ON 1
+Response value: 1
+------------------------------------------------
+Send command: 
+SET DON2_ON 1
+Response value: 1
+------------------------------------------------
+Send command: 
+SET DON3_ON 1
+Response value: 1
+------------------------------------------------
+Send command: 
+SET DON4_ON 1
+Response value: 1
+------------------------------------------------
+Send command: 
+END
+
+7) Type <./script_command.exe CERNtestscripts/Pedestal> to set pedestal values.
+
+isscream-psu@isscreampsu-X101CH:~/BSD_GSE_MAY_19_2014$ ./script_command.exe CERNtestscripts/Pedestal
+BSDUsb::BSDUsb_initialization: USB library initialized
+BSDUsb::BSDUsb_initialization: USB system bus list updated
+BSDUsb::BSDUsb_initialization: USB system device list updated
+BSDUsb::BSDUsb_initialization: BSD USB device found
+BSDUsb::BSDUsb_initialization: Using ID 04b4:1801 on 001.007.
+BSDUsb::BSDUsb_initialization: BSD USB device opened
+Opening File CERNtestscripts/Pedestal
+
+Enter commands in mnemonic form, and the 
+response will be shown, along with any 
+error messages
+------------------------------------------------
+Send command: 
+SET PED1H 2100
+Response value: 0
+------------------------------------------------
+Send command: 
+SET PED2H 2100
+Response value: 2100
+------------------------------------------------
+Send command: 
+SET PED3H 2300
+Response value: 2300
+------------------------------------------------
+Send command: 
+SET PED4H 1500
+Response value: 1500
+------------------------------------------------
+Send command: 
+SET PED5H 2100
+Response value: 2100
+------------------------------------------------
+Send command: 
+SET PED6H 2400
+Response value: 2400
+------------------------------------------------
+Send command: 
+SET PED7H 1600
+Response value: 1600
+------------------------------------------------
+Send command: 
+SET PED8H 2000
+Response value: 2000
+------------------------------------------------
+Send command: 
+SET PED9H 2600
+Response value: 2600
+------------------------------------------------
+Send command: 
+SET PED10H 1800
+Response value: 1800
+------------------------------------------------
+Send command: 
+SET PED11H 2200
+Response value: 2200
+------------------------------------------------
+Send command: 
+SET PED12H 2300
+Response value: 2300
+------------------------------------------------
+Send command: 
+SET PED13H 1700
+Response value: 1700
+------------------------------------------------
+Send command: 
+SET PED14H 1800
+Response value: 1800
+------------------------------------------------
+Send command: 
+SET PED15H 1300
+Response value: 1300
+------------------------------------------------
+Send command: 
+SET PED16H 1700
+Response value: 1700
+------------------------------------------------
+Send command: 
+SET PED1L 1700
+Response value: 1700
+------------------------------------------------
+Send command: 
+SET PED2L 1700
+Response value: 1700
+------------------------------------------------
+Send command: 
+SET PED3L 1700
+Response value: 1700
+------------------------------------------------
+Send command: 
+SET PED4L 1750
+Response value: 1750
+------------------------------------------------
+Send command: 
+SET PED5L 1700
+Response value: 1700
+------------------------------------------------
+Send command: 
+SET PED6L 1700
+Response value: 1700
+------------------------------------------------
+Send command: 
+SET PED7L 1750
+Response value: 1750
+------------------------------------------------
+Send command: 
+SET PED8L 1670
+Response value: 1670
+------------------------------------------------
+Send command: 
+SET PED9L 1650
+Response value: 1650
+------------------------------------------------
+Send command: 
+SET PED10L 1750
+Response value: 1750
+------------------------------------------------
+Send command: 
+SET PED11L 1700
+Response value: 1700
+------------------------------------------------
+Send command: 
+SET PED12L 1650
+Response value: 1650
+------------------------------------------------
+Send command: 
+SET PED13L 1750
+Response value: 1750
+------------------------------------------------
+Send command: 
+SET PED14L 1750
+Response value: 1750
+------------------------------------------------
+Send command: 
+SET PED15L 1750
+Response value: 1750
+------------------------------------------------
+Send command: 
+SET PED16L 1750
+Response value: 1750
+------------------------------------------------
+Send command: 
+SET PEDT1H 2300
+Response value: 2300
+------------------------------------------------
+Send command: 
+SET PEDT1L 1750
+Response value: 1750
+------------------------------------------------
+Send command: 
+SET PEDT2H 2300
+Response value: 2300
+------------------------------------------------
+Send command: 
+SET PEDT2L 1770
+Response value: 1770
+------------------------------------------------
+Send command: 
+END
+
+-----------------------------------------------------------------------------------
+
+Data Collection Procedure:
+
+1a) Type <./script_command.exe CERNtestscripts/SwitchingMode> to be in switching mode.
+
+OR
+
+1b) Type <./script_command.exe CERNtestscripts/ConstantMode> to be in constant mode.
+
+2) Type <./command.exe> and then type the command <SET TRIG_MODE #> where # is:
+
+#  	|Trigger setting	|Example Uses      	       	
+---------------------------------------------------------
+0	|No Triggering		|Turn triggers off	
+1	|Master Trigger (MT)	|Trigger only on DG-535 		
+2	|Trigger 1 (T1)		|Trigger only on untapered base (muons)			
+4	|Trigger 2 (T2)		|Trigger only on tapered base (light leak testing?)			
+8	|T1 AND T2		|Trigger on coincidence of both (beam test?)			
+6	|T1 OR T2		|Trigger on either (light leak testing?)			
+9	|MT AND (T1 OR T2)	|Trigger only on LED fires
+
+Alternately, modify the CERNtestscripts/Trig_mode and run <./script_command.exe CERNtestscripts/Trig_mode>
+
+3) Set thresholds by modifying CERNtestscripts/Threshold and running <./script_command.exe CERNtestscripts/Threshold>
+
+A value of 2030 corresponds roughly to a minimum peak of -30 mV. High energy muons can be seen at 2000. Do not go above 2049.
+Lower values indicate stricter threshold (higher energy events).
+			
+4) Set pedestals by modifying CERNtestscripts/Pedestal and running <./script_command.exe CERNtestscripts/Pedestal>.
+Check pedestals by then running ./event_software_generated.exe and judging by eye (or by analyzing the histograms).
+
+Method to correctly set pedestals: If the pedestal is too large, increase the DAC value. If the pedestal is too low, decrease the DAC value.
+DO NOT go above 3000. ADC readouts should be between 4000-6000 for a good set of pedestals.
+
+For example, an ADC is reading 8000, and the pedestal value PEDXH is set to 2000. By raising PEDXH to 2200, the ADC value might now read back 6000.
+
+5) When all is said and done, run <./event.exe> to collect events, which will be stored in the <analysis> directory.
+
+6) Make plots by going to the analysis folder via <cd analysis> and running <./analyze.sh $$> where $$ is the text file to analyze.
+Type <.x plot_all.C> once root is initiated with the correct .root file to generate gifs within that folder.
+
+Alternately, type <./analyze_all.sh> just to analyze every text file in the folder.
+-------------------------------------------------------------------------
+Shutdown Procedure:
+
+0) Type <./poweroff.sh> to turn everything off. To do a slow shutdown, move on to step 1.
+
+1) Type <./script_command.exe CERNtestscripts/StepHV>
+
+2) Type <./script_command.exe CERNtestscripts/HVOff>
+
+3) Type <./script_command.exe CERNtestscripts/PowerOff>
+
+4) Done! Now it is safe to turn off all power supplies.
+
+--------------------------------------------------------------------------
+Example switching test.
+
+Turn on all FEE/Quartets.	\
+Set HVs	    		       	|
+Set Pedestals			|  --> PowerOn.sh
+Set trig_mode 1			/
+
+run switching mode script		--> ./script_command CERNtestscripts/SwitchingMode
+
+Connect C-D positive going to event board (TTL)
+Connect A-B negative going (with inverting transformer) to LED
+Set delay of C-D to 0
+Set delay of A-B to 0
+
+If you want to change the delay, set D1X_DL to whatever for X = 1,2,3,4   ./command -> SET D11_DL 50
+
+./event.exe
+
+Move delay of A-B up to 1 microsecond and see that ADCs show increased light levels.
+Move delay of A-B back to 0 microseconds to see that light disappears.

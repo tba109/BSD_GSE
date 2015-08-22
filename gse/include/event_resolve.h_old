@@ -1,0 +1,47 @@
+#ifndef _EVENT_RESOLVE_H_
+#define _EVENT_RESOLVE_H_
+
+#include "BSD_err.h"
+#include "BSD-event.h"
+// New naming convention
+typedef struct BSD_gse_event_struct
+{
+  unsigned int event_number; /* 32 bit instrument event number */
+  unsigned char event_count; /* 8-bit event counter */
+  unsigned char trig_mode; /* the trigger mode for this event */
+  unsigned char conf_mode; /* the confirmation mode for this event */
+  unsigned char trig2; /* flagged if trig2 was involved in this event's trigger */
+  unsigned char trig1; /* flagged if trig1 was involved in this event's trigger */
+  unsigned char extin; /* flagged if extin was involved in this event's trigger */
+  unsigned short bsdlate_hg[NUM_LATE]; /* late PMT data high gain */
+  unsigned short bsdlate_lg[NUM_LATE]; /* late PMT data low gain */
+  unsigned short bsdearly_hg[NUM_EARLY]; /* early PMT data high gain */
+  unsigned short bsdearly_lg[NUM_EARLY]; /* early PMT data low gain */
+} BSD_gse_event;
+
+
+
+/*
+ * Tyler Anderson Wed Jan 23 20:17:33 EST 2013
+ * Functions for performing the mundane tasks of
+ * sorting out raw data into a struct and printing it
+ */
+
+//////////////////////////////////////////////////////////////////
+// Taken from the old gse_daq's TCD2Data::FillData() routine
+//////////////////////////////////////////////////////////////////
+void FillData(int nbytes, unsigned char * buf, FILE * fp);
+
+/////////////////////////////////////////////////////////////////
+// Convert number to a four bit string
+/////////////////////////////////////////////////////////////////
+char * fourbitstr(int num);
+
+/////////////////////////////////////////////////////////////////
+// Print the data nicely
+/////////////////////////////////////////////////////////////////
+void PrintAll();
+
+BSD_gse_event curevt;
+
+#endif
